@@ -1,6 +1,6 @@
 # Xcode extension for Pastery.net
 
-![Pastery for Xcode screenshot](https://dl.dropboxusercontent.com/u/20485/pastery-xcode-screenshot.png")
+![Pastery for Xcode screenshot](https://dl.dropboxusercontent.com/u/20485/pastery-xcode-screenshot.png)
 
 This Xcode extension allows users to create pastes right from within the Xcode app by using the Xcode extension API.
 
