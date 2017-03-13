@@ -129,10 +129,6 @@ class SourceEditorCommand: NSObject, XCSourceEditorCommand {
             
             urlString += "&duration=\(duration)"
         }
-        else {
-            
-            urlString += "&duration="
-        }
         
         var request = URLRequest(url: URL(string: urlString)!)
         request.httpMethod = "POST"
