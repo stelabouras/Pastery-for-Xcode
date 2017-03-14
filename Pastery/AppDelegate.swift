@@ -24,7 +24,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
         defaults = UserDefaults(suiteName: "557NA63EQK.group.pastery.xcode.sharedprefs")!
-        
+
         let apiKey = defaults.string(forKey: "apikey")
         
         if apiKey != nil {
@@ -63,9 +63,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    @IBAction func updateButtonClicked(_ sender: Any) {
+     
+        self.apiKeyChanged(NSNull())
+        self.expiredChanged(NSNull())
+        self.maxViewsChanged(NSNull())
+    }
+    
     @IBAction func apiKeyChanged(_ sender: Any) {
-        
-        let apiKey = (sender as! NSTextField).stringValue
+    
+        self.apiKeyTextField.layer?.borderWidth = 0
+
+        let apiKey = apiKeyTextField.stringValue
         
         if apiKey == "" {
             
@@ -78,15 +87,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             guard error == nil else {
 
-                self.wrongAPIkey()
+                self.updateAPIkey(isWrong: true)
                 return
             }
             
             if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200 {
 
-                self.wrongAPIkey()
+                self.updateAPIkey(isWrong: true)
                 return
             }
+            
+            self.updateAPIkey(isWrong: false)
             
             self.defaults.set(apiKey, forKey: "apikey")
         }
@@ -96,8 +107,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @IBAction func expiredChanged(_ sender: Any) {
 
-        let expires = (sender as! NSPopUpButton).selectedTag()
-
+        let expires = expiresPullDown.selectedTag()
+        
         if expires >= 0 {
             
             defaults.set(expires, forKey: "duration")
@@ -107,7 +118,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @IBAction func maxViewsChanged(_ sender: Any) {
 
-        let maxViews = (sender as! NSTextField).integerValue
+        let maxViews = maxViewsTextField.integerValue
         
         if maxViews > 0 {
             
@@ -136,14 +147,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     //MARK: - Helper methods
     
-    func wrongAPIkey() {
+    func updateAPIkey(isWrong: Bool) {
         
         DispatchQueue.main.async {
-            let alert = NSAlert()
-            alert.addButton(withTitle: "OK")
-            alert.messageText = "Wrong API key"
-            alert.informativeText = "The API you entered was wrong. Try again."
-            alert.runModal()
+         
+            self.apiKeyTextField.layer?.borderWidth = 1.0
+            
+            if isWrong {
+                
+                self.apiKeyTextField.layer?.borderColor = NSColor(deviceRed: 0.991, green: 0.675, blue: 0.601, alpha: 1.0).cgColor
+                
+                let alert = NSAlert()
+                alert.addButton(withTitle: NSLocalizedString("OK", comment: ""))
+                alert.messageText = NSLocalizedString("Wrong API key", comment: "")
+                alert.informativeText = NSLocalizedString("The API you entered was wrong. Try again.", comment: "")
+                alert.runModal()
+            }
+            else {
+             
+                self.apiKeyTextField.layer?.borderColor = NSColor(deviceRed: 0.371, green: 0.726, blue: 0.488, alpha: 1.0).cgColor
+            }
         }
     }
     

@@ -64,6 +64,9 @@ class SourceEditorCommand: NSObject, XCSourceEditorCommand {
         let types = [("objective-c", "objective-c"),
                      ("com.apple.dt.playground", "swift"),
                      ("swift","swift"),
+                     ("c-plus-plus-source","cpp"),
+                     ("c-source","c"),
+                     ("c-header","c"),
                      ("xml", "xml"),
                      ("markdown", "markdown")]
         
