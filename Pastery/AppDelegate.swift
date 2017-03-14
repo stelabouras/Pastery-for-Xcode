@@ -21,6 +21,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     var defaults : UserDefaults!
     
+    //MARK: - Lifecycle
+
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
         defaults = UserDefaults(suiteName: "557NA63EQK.group.pastery.xcode.sharedprefs")!
@@ -62,6 +64,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             copyToClipboardRadioButton.state = 0;
         }
     }
+    
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        
+        return true
+    }
+
+    //MARK: - Interface Builder
 
     @IBAction func updateButtonClicked(_ sender: Any) {
      
