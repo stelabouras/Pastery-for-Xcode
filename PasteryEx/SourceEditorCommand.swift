@@ -35,10 +35,13 @@ class SourceEditorCommand: NSObject, XCSourceEditorCommand {
             return
         }
 
+        let secondLine = invocation.buffer.lines.object(at: 1) as? String
+        let title = fileName(fromFileNameComment: secondLine, commandInvocation: invocation)
+        
         let data = requestDataWith(commandInvocation: invocation)
         let language = codeTypeWith(buffer: invocation.buffer)
         
-        postCodeToPastery(data: data, apiKey: apiKey, language: language) { (error) in
+        postCodeToPastery(title: title, data: data, apiKey: apiKey, language: language) { (error) in
             completionHandler(error)
         }
     }
@@ -46,20 +49,35 @@ class SourceEditorCommand: NSObject, XCSourceEditorCommand {
     
     //MARK: - Helper Methods
     
-    func openToBrowser(value: String) -> Void {
+    private func openToBrowser(value: String) -> Void {
         if let url = URL(string: value), NSWorkspace.shared().open(url) { }
     }
     
-    func copyToClipBoard(value: String) -> Void {
+    private func copyToClipBoard(value: String) -> Void {
         let pasteboard = NSPasteboard.general()
         pasteboard.declareTypes([NSPasteboardTypeString], owner: nil)
         pasteboard.setString(value, forType: NSPasteboardTypeString)
     }
     
+    private func fileName(fromFileNameComment comment: String?, commandInvocation: XCSourceEditorCommandInvocation) -> String? {
+        
+        guard comment != nil else { return nil }
+
+        let isSelection = commandInvocation.commandIdentifier.contains(CommandType.selection.rawValue)
+
+        let comment = comment!.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        let commentPrefix = "//"
+        guard comment.hasPrefix(commentPrefix) else { return nil }
+        
+        let startIndex = comment.index(comment.startIndex, offsetBy: commentPrefix.characters.count)
+        
+        return (isSelection ? "A piece of " : "") + comment[startIndex..<comment.endIndex].trimmingCharacters(in: .whitespacesAndNewlines)
+    }
     
     //MARK: - Data Handling Methods
 
-    func codeTypeWith(buffer: XCSourceTextBuffer) -> String {
+    private func codeTypeWith(buffer: XCSourceTextBuffer) -> String {
         
         let types = [("objective-c", "objective-c"),
                      ("com.apple.dt.playground", "swift"),
@@ -78,7 +96,7 @@ class SourceEditorCommand: NSObject, XCSourceEditorCommand {
         return ""
     }
     
-    func getTextSelectionFrom(buffer: XCSourceTextBuffer) -> String {
+    private func getTextSelectionFrom(buffer: XCSourceTextBuffer) -> String {
         
         var text = ""
         
@@ -96,7 +114,7 @@ class SourceEditorCommand: NSObject, XCSourceEditorCommand {
         return text
     }
     
-    func requestDataWith(commandInvocation: XCSourceEditorCommandInvocation) -> Data? {
+    private func requestDataWith(commandInvocation: XCSourceEditorCommandInvocation) -> Data? {
         var string = ""
         
         if commandInvocation.commandIdentifier.contains(CommandType.selection.rawValue) {
@@ -111,7 +129,7 @@ class SourceEditorCommand: NSObject, XCSourceEditorCommand {
     
     //MARK: - Network Methods
     
-    func postCodeToPastery(data: Data?, apiKey: String, language: String, completion: @escaping (Error?) -> Void) -> Void {
+    private func postCodeToPastery(title: String?, data: Data?, apiKey: String, language: String, completion: @escaping (Error?) -> Void) -> Void {
         
         let maxViews = defaults.integer(forKey: "maxviews")
         let duration = defaults.integer(forKey: "duration")
@@ -131,6 +149,16 @@ class SourceEditorCommand: NSObject, XCSourceEditorCommand {
         if duration > 0 {
             
             urlString += "&duration=\(duration)"
+        }
+        
+        if title != nil {
+            
+            let escapedTitle = title!.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
+            
+            if escapedTitle != nil {
+                
+                urlString += "&title=\(escapedTitle!)"
+            }
         }
         
         var request = URLRequest(url: URL(string: urlString)!)
